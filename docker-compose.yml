@@ -1,0 +1,14 @@
+version: '3.1'
+services:
+   nest_ecommerce_pg:
+      image: postgres:15.3
+      container_name: nest_ecommerce
+      restart: always
+      environment:
+        POSTGRES_DB: nest_ecommerce
+        POSTGRES_USER: jduser
+        POSTGRES_PASSWORD: secret1234
+      volumes:
+       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      ports:
+       - 5432:5432
