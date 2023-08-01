@@ -1,9 +1,10 @@
 import { CreateDateColumn, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 export abstract class BaseEntity {
-    
+
     @PrimaryGeneratedColumn('uuid')
     id: string;
+
     @CreateDateColumn({
         type: 'timestamp',
         name: 'created_at'
@@ -15,5 +16,5 @@ export abstract class BaseEntity {
         name: 'updated_at'
     })
     updatedAt: Date;
-    
+
 }

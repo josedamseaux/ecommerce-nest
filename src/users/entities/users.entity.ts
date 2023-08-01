@@ -25,9 +25,12 @@ export class UsersEntity extends BaseEntity implements IUser{
     @Exclude()
     @Column()
     password: string;
-    
 
-    // relacion de un usuario a muchos proyectos
+    @Column({nullable: true})
+    @Exclude()
+    refreshToken?: string;
+
+    // relacion de un usuario a muchos purchases
     @OneToMany(() => UsersPurchasesEntity, usersPurchases => usersPurchases.user)
     purchases: UsersPurchasesEntity[];
 
