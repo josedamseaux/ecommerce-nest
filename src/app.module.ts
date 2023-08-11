@@ -10,6 +10,7 @@ import { AuthModule } from './auth/module/auth.module';
 import { AuthService } from './auth/service/auth.service';
 import { PurchasesModule } from './purchases/module/purchases.module';
 import { PurchasesService } from './purchases/service/purchases.service';
+import { ShoppingcartService } from './purchases/service/shoppingCart.service';
 
 @Module({
   imports: [ConfigModule.forRoot({
@@ -18,7 +19,7 @@ import { PurchasesService } from './purchases/service/purchases.service';
   }),
   TypeOrmModule.forRoot(DataSourceConfig),
   AuthModule, UsersModule, ProductsModule, PurchasesModule],
-  providers: [UsersService, ProductsService, AuthService, PurchasesService],
+  providers: [UsersService, ProductsService, AuthService, PurchasesService, ShoppingcartService],
 })
 export class AppModule {
   // configure(consumer: MiddlewareConsumer) {

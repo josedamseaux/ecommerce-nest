@@ -1,15 +1,10 @@
-import { Column, Entity, JoinColumn, ManyToMany, ManyToOne } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToOne } from "typeorm";
 import { BaseEntity } from "../../config/base.entity";
 import { UsersEntity } from "../../users/entities/users.entity";
+import { UsersPurchasesEntity } from "../../users/entities/usersPurchases.entity";
 
 @Entity({ name: 'purchases' })
 export class PurchaseEntity extends BaseEntity {
-
-    // @ManyToOne(()=> UsersEntity, user => user.purchases)
-    // @JoinColumn({
-    //     name:'users_purchases_id',
-    // })
-    // usersPurchases: UsersPurchasesEntity;
 
     @ManyToOne(() => UsersEntity, user => user.purchases)
     @JoinColumn({ name: 'user_id' })
@@ -20,5 +15,8 @@ export class PurchaseEntity extends BaseEntity {
 
     @Column({ type: 'jsonb', nullable: true })
     products: string[]; // Array of product IDs
+
+    @OneToOne(() => UsersPurchasesEntity, usersPurchases => usersPurchases.purchase)
+    usersPurchases: UsersPurchasesEntity; 
 
 }

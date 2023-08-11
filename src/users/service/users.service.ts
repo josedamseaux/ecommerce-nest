@@ -4,6 +4,7 @@ import { UsersEntity } from '../entities/users.entity';
 import { DeleteResult, Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { UserDTO } from '../DTO/user.dto';
+import { PurchaseEntity } from 'src/purchases/entities/purchase.entity';
 
 @Injectable()
 export class UsersService {
@@ -11,10 +12,22 @@ export class UsersService {
   constructor(
     @InjectRepository(UsersEntity)
     private readonly userRepository: Repository<UsersEntity>,
-  ) { }
+    @InjectRepository(PurchaseEntity)
+    private readonly purchasesRepository: Repository<PurchaseEntity>) { }
 
-  public async getUsers(): Promise<UsersEntity[]> {
-    return await this.userRepository.find();
+  public async getUsers(page: number, limit: number): Promise<any> {
+    const totalCount = await this.userRepository.count();
+    const totalPages = Math.ceil(totalCount / limit);
+    const skipAmount = (page - 1) * limit;
+    const users = await this.userRepository.find({
+      take: limit,
+      skip: skipAmount,
+    });
+    return {
+      users: users,
+      totalCount,
+      totalPages
+    };
   }
 
   public async findUserById(id: string) {
@@ -28,14 +41,33 @@ export class UsersService {
     return user
   }
 
-  async findByUsername(username: any): Promise<any> {
-    const user = await this.userRepository.findOne({ where: { username: username.username } });
-    if (!user) {
-      throw new NotFoundException("user not found")
-    }
-    const { password, createdAt, updatedAt, ...result } = user;
+  async findByUsername(param: string): Promise<any> {
+    const user: any[] = await this.userRepository.find({
+      where: [{ username: param }, { email: param }, { firstName: param }, { lastName: param }]
+    })
 
-    return user;
+    if (user) {
+      const userIds = user.map(user => user.id);
+      console.log(userIds)
+      const purchases = await this.purchasesRepository.createQueryBuilder('purchase')
+      .innerJoinAndSelect('purchase.user', 'user')
+      .where('user.id IN (:...userIds)', { userIds })
+      .getMany();
+
+      // const { password, refreshToken, ...userWithPurchases } = user;
+      user.forEach(user => {
+        user.purchases = purchases.filter(purchase => purchase.user.id === user.id);
+      });
+      return user;
+    }
+
+    if (!user) {
+      throw new NotFoundException("User not found", {
+        cause: new Error(),
+        description: 'user_not_found'
+      })
+    }
+
   }
 
   async findBy({ key, value }: { key: keyof UserDTO, value: any }) {
@@ -46,7 +78,6 @@ export class UsersService {
         .getOne()
       return user
     } catch (error) {
-      // throw ErrorManager.createSignatureError(error.message)
       throw new NotFoundException("User not found", {
         cause: new Error(),
         description: 'user_not_found'
@@ -71,8 +102,6 @@ export class UsersService {
       }
     }
   }
-
-  // implementing tuiitter nestjs
 
   updateUser(id: any, user: any) {
     try {

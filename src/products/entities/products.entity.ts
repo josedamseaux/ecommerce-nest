@@ -22,7 +22,4 @@ export class ProductsEntity extends BaseEntity implements IProduct {
     @Column('bytea', { nullable: true })
     imageData: Buffer;
 
-    // relacion de un usuario a muchos proyectos
-    // @ManyToOne(() => UsersEntity, users => users.products)
-    // projectsIncludes: UsersProjectsEntity[]
 }

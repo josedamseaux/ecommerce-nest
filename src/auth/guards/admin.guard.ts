@@ -21,7 +21,7 @@ export class AdminGuard extends AuthGuard('jwt') implements CanActivate {
     }
 
     try {
-      const decodedToken = jwt.verify(token, process.env.JWT_SECRET) as { sub: string };
+      const decodedToken = jwt.verify(token, process.env.JWT_REFRESH) as { sub: string };
       const userId = decodedToken.sub;
       const user = await this.usersServices.findUserById(userId);
       console.log(user)

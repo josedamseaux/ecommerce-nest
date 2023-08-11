@@ -1,11 +1,12 @@
-import { Column, Entity, OneToMany } from "typeorm";
+import { Column, Entity, OneToMany, OneToOne } from "typeorm";
 import { BaseEntity } from "../../config/base.entity";
 import { IUser } from "../../interfaces/user.interface";
 import { Exclude } from "class-transformer";
 import { UsersPurchasesEntity } from "./usersPurchases.entity";
+import { ShoppingCartEntity } from "../../purchases/entities/shoppingCart.entity";
 
-@Entity({name: 'users'})
-export class UsersEntity extends BaseEntity implements IUser{
+@Entity({ name: 'users' })
+export class UsersEntity extends BaseEntity implements IUser {
 
     @Column()
     firstName: string;
@@ -16,17 +17,17 @@ export class UsersEntity extends BaseEntity implements IUser{
     @Column()
     age: number;
 
-    @Column({unique:true})
+    @Column({ unique: true })
     email: string;
 
-    @Column({unique:true})
+    @Column({ unique: true })
     username: string;
 
     @Exclude()
     @Column()
     password: string;
 
-    @Column({nullable: true})
+    @Column({ nullable: true })
     @Exclude()
     refreshToken?: string;
 
@@ -34,4 +35,7 @@ export class UsersEntity extends BaseEntity implements IUser{
     @OneToMany(() => UsersPurchasesEntity, usersPurchases => usersPurchases.user)
     purchases: UsersPurchasesEntity[];
 
+    // Relación de un usuario a un carrito de compras
+    @OneToOne(() => ShoppingCartEntity, shoppingCart => shoppingCart.user)
+    shoppingCart: ShoppingCartEntity;
 }
