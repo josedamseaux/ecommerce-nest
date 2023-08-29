@@ -1,4 +1,4 @@
-import { Body, Controller, Request , Delete, Get, Param, ParseFilePipe, Post, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Request, Delete, Get, Param, ParseFilePipe, Post, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { ProductsService } from '../service/products.service';
 import { ProductInterface } from '../interfaces/product.interface';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -14,7 +14,7 @@ export class ProductsController {
   @UseGuards(AdminGuard)
   @Post('new-product')
   @UseInterceptors(FileInterceptor('file'))
-  public async addProduct( @Body() body: ProductInterface, @UploadedFile(new ParseFilePipe({
+  public async addProduct(@Body() body: ProductInterface, @UploadedFile(new ParseFilePipe({
     validators: [
       // new MaxFileSizeValidator({ maxSize: 5000 }),
       // new FileTypeValidator({ fileType: 'image/jpeg' }),
@@ -29,11 +29,9 @@ export class ProductsController {
     return this.productService.getAllProducts()
   }
 
-  @UseGuards(AdminGuard, AccessTokenGuard)
-  @Post('test')
-  public async testGuards() {
-    console.log('test executed')
-    // return this.productService.getAllProducts()
+  @Get('get-product/:id')
+  public async getProductById(@Param('id') id: any) {
+    return this.productService.getProductById(id)
   }
 
   @Delete('delete/:id')
@@ -41,7 +39,7 @@ export class ProductsController {
     return this.productService.deleteProduct(id)
   }
 
-  
+
 
 
 }

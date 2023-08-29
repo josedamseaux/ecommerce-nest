@@ -11,6 +11,8 @@ import { AuthService } from './auth/service/auth.service';
 import { PurchasesModule } from './purchases/module/purchases.module';
 import { PurchasesService } from './purchases/service/purchases.service';
 import { ShoppingcartService } from './purchases/service/shoppingCart.service';
+import { PaymentsService } from './payments/service/payments.service';
+import { PaymentsController } from './payments/controller/payments.controller';
 
 @Module({
   imports: [ConfigModule.forRoot({
@@ -19,7 +21,8 @@ import { ShoppingcartService } from './purchases/service/shoppingCart.service';
   }),
   TypeOrmModule.forRoot(DataSourceConfig),
   AuthModule, UsersModule, ProductsModule, PurchasesModule],
-  providers: [UsersService, ProductsService, AuthService, PurchasesService, ShoppingcartService],
+  providers: [UsersService, ProductsService, AuthService, PurchasesService, ShoppingcartService, PaymentsService],
+  controllers: [PaymentsController],
 })
 export class AppModule {
   // configure(consumer: MiddlewareConsumer) {

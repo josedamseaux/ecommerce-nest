@@ -26,10 +26,9 @@ export class AuthService {
         const tokens = await this.getTokens(userByUsername.id, userByUsername.username);
         await this.updateRefreshToken(userByUsername.id, tokens.refreshToken);
         const { accessToken, refreshToken } = tokens;
-        const { username } = userByUsername;
-        return { accessToken, refreshToken, username };
+        const { username, email, firstName, lastName } = userByUsername;
+        return { accessToken, refreshToken, username, email, firstName, lastName };
       }
-
       if (!match) {
         throw new NotFoundException("Usuario o contraseña invalido", {
           cause: new Error(),
@@ -45,8 +44,8 @@ export class AuthService {
         const tokens = await this.getTokens(userByEmail.id, userByEmail.username);
         await this.updateRefreshToken(userByEmail.id, tokens.refreshToken);
         const { accessToken, refreshToken } = tokens;
-        const { username } = userByEmail;
-        return { accessToken, refreshToken, username };
+        const { username, email } = userByEmail;
+        return { accessToken, refreshToken, username, email};
       }
       if (!match) {
         throw new NotFoundException("Usuario o contraseña invalido", {
@@ -63,7 +62,6 @@ export class AuthService {
   }
 
   async logout(userId: string): Promise<any> {
-
     const user = await this.userService.findUserById(userId);
     console.log(user)
     if (!user) {
@@ -83,12 +81,8 @@ export class AuthService {
 
   async getTokens(userId: string, username: string) {
     const [accessToken, refreshToken] = await Promise.all([
-      this.jwtService.signAsync(
-        { sub: userId, username, }, { secret: process.env.JWT_SECRET, expiresIn: '1d' },
-      ),
-      this.jwtService.signAsync(
-        { sub: userId, username }, { secret: process.env.JWT_REFRESH, expiresIn: '7d' },
-      )
+      this.jwtService.signAsync({ sub: userId, username }, { secret: process.env.JWT_SECRET, expiresIn: '1d' }),
+      this.jwtService.signAsync({ sub: userId, username }, { secret: process.env.JWT_REFRESH, expiresIn: '15d'})
     ]);
     return { accessToken, refreshToken };
   }
@@ -100,8 +94,6 @@ export class AuthService {
 
   async refreshTokens(username: string, refreshToken: string) {
     const user = await this.userService.findByUsername(username)
-
-    console.log(user)
 
     if (!user || !user.refreshToken) throw new ForbiddenException('Access Denied');
 

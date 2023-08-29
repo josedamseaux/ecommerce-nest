@@ -1,4 +1,4 @@
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PurchaseEntity } from '../entities/purchase.entity';
 import { DeleteResult, Repository } from 'typeorm';
@@ -11,68 +11,99 @@ import { UsersPurchasesEntity } from 'src/users/entities/usersPurchases.entity';
 @Injectable()
 export class PurchasesService {
 
-    users_purchase: any = {
-        user: '',
-        purchase: '',
-        shippingAddress: '',
-        status: '',
-        additionalInfo: '',
-    };
-
     constructor(@InjectRepository(PurchaseEntity) private readonly purchasesRepository: Repository<PurchaseEntity>,
-        @InjectRepository(UsersPurchasesEntity) private readonly usersPurchases: Repository<UsersPurchasesEntity>,
+        @InjectRepository(UsersPurchasesEntity) private readonly usersPurchasesRepository: Repository<UsersPurchasesEntity>,
         @Inject(REQUEST) private request,
         private readonly usersServices: UsersService) { }
-
-    async createPurchase(purchaseBody: any) {
-
-        const token = this.request.get('Authorization')?.replace('Bearer', '').trim();
-        if (!token) {
-            throw new UnauthorizedException('Access denied. Must be logging in to make a purchase');
+        
+    data = {
+        cartWithUserInfo: {
+            cart: [],
+            shippingInfo: ''
+          }
+    };
+    
+    async createPurchase(purchaseBody: any): Promise<any> {
+        try {
+            const token = this.request.get('Authorization')?.replace('Bearer', '').trim();
+            if (!token) {
+                throw new UnauthorizedException('Access denied. Must be logged in to make a purchase');
+            }
+    
+            const decodedToken = jwt.verify(token, process.env.JWT_REFRESH) as { sub: string };
+            const userId = decodedToken.sub;
+            const user = await this.usersServices.findUserById(userId);
+    
+            const totalAmountSum = purchaseBody.cartWithUserInfo.cart.reduce((total, item) => total + item.totalAmount, 0);
+            const idsCartsArray = purchaseBody.cartWithUserInfo.cart.map(item => item.id);
+    
+            let dataForPurcharseRepository = {
+                user: user,
+                total: +totalAmountSum,
+                products: idsCartsArray,
+            };
+    
+            const purchaseData = await this.purchasesRepository.save(dataForPurcharseRepository);
+    
+            let dataForUsersPurchasesRepository: any = {
+                user: purchaseData.user,
+                purchase: purchaseData.id,
+                status: 'NOTPAID',
+                total: +totalAmountSum,
+                sessionId: purchaseBody.cartWithUserInfo.sessionId,
+                shippingAddress: purchaseBody.cartWithUserInfo.shippingInfo,
+                additionalInfo: purchaseBody.cartWithUserInfo.additionalInfo
+            };
+    
+            const usersPurchaseData = await this.usersPurchasesRepository.save(dataForUsersPurchasesRepository);
+    
+            return usersPurchaseData; // Devuelve los datos de la compra realizada por el usuario
+        } catch (error) {
+            throw new InternalServerErrorException(error.message);
         }
-
-        const decodedToken = jwt.verify(token, process.env.JWT_REFRESH) as { sub: string };
-        const userId = decodedToken.sub;
-        const user = await this.usersServices.findUserById(userId);
-        purchaseBody.total = +purchaseBody.total
-        purchaseBody.user = user.id
-
-
-        await this.purchasesRepository.save(purchaseBody).then(async data => {
-            console.log(data);
-            this.users_purchase.user = data.user;
-            this.users_purchase.purchase = data.id;
-            this.users_purchase.status = purchaseBody.status;
-            this.users_purchase.shippingAddress = purchaseBody.shippingAddress;
-            this.users_purchase.additionalInfo = purchaseBody.additionalInfo;
-            this.usersPurchases.save(this.users_purchase).then(data => {
-                console.log(data)
-            });
-        });
     }
 
 
-    async deletePurchase(id: string): Promise<PurchaseEntity> {
+    async deleteUsersPurchase(id: string): Promise<PurchaseEntity> {
         try {
             console.log(id)
-            const result: any = await this.purchasesRepository.findOneBy({
+            const result: any = await this.usersPurchasesRepository.delete({
                 id: id
             })
-            // const result = this.purchasesRepository.delete(id)
             return result
         } catch (error) {
             return error.message
         }
-
     }
 
-     async getPurchasesById(id: string): Promise<any> {
+    async deletePurchase(id: string): Promise<PurchaseEntity> {
+        try {
+            console.log(id)
+            const result: any = await this.purchasesRepository.delete({
+                id: id
+            })
+            return result
+        } catch (error) {
+            return error.message
+        }
+    }
+
+   async getPurchases(){
+        try {
+            const purchases = await this.purchasesRepository.find();
+            return purchases
+        } catch (error) {
+            return error.message
+        }
+    }
+
+    async getPurchasesById(id: string): Promise<any> {
         try {
             const purchases = await this.purchasesRepository.find({
                 where: {
-                  user: { id } // Filtrar por user_id
+                    user: { id } // Filtrar por user_id
                 },
-              });
+            });
             return purchases
         } catch (error) {
             return error.message
@@ -80,5 +111,45 @@ export class PurchasesService {
 
     }
 
+
+    async getUsersPurchasesById(id: string): Promise<any> {
+        try {
+            const purchases = await this.usersPurchasesRepository.findOne({
+                where: {
+                    id: id  // Filtrar por user_id
+                },
+            });
+
+            if(!purchases){
+                return 'not found'
+            }
+            return purchases
+        } catch (error) {
+            return error.message
+        }
+
+    }
+
+    async updatePurchaseStatus(id: string): Promise<any> {
+        try {
+            const purchase = await this.usersPurchasesRepository.findOne({
+                where: {
+                    id: id  // Filtrar por id
+                },
+            });
+
+          if (!purchase) {
+            return 'not found';
+          }
+          
+          purchase.status = 'PAID';
+          
+          const updatedPurchase = await this.usersPurchasesRepository.save(purchase);
+          
+          return updatedPurchase;
+        } catch (error) {
+          return error.message;
+        }
+      }
 
 }

@@ -2,7 +2,6 @@ import { BaseEntity } from "../../config/base.entity"
 import { Column, Entity, JoinColumn, ManyToOne, OneToOne } from "typeorm"
 import { UsersEntity } from "./users.entity";
 import { PurchaseEntity } from "../../purchases/entities/purchase.entity";
-import { truncateSync } from "fs";
 
 @Entity({ name: 'users_purchases' })
 export class UsersPurchasesEntity extends BaseEntity {
@@ -26,5 +25,8 @@ export class UsersPurchasesEntity extends BaseEntity {
 
     @Column({ nullable: true })
     additionalInfo: string;
+
+    @Column({ nullable: true })
+    sessionId: string;
 
 }

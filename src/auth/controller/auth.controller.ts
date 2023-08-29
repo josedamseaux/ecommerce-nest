@@ -18,14 +18,6 @@ export class AuthController {
   }
 
   @UseGuards(RefreshAuthGuard)
-  @Get('refresh')
-  async refreshTokens(@Req() req: any) {
-    const userId = req.user;
-    const refreshToken = req.user.refreshToken;
-    return this.authService.refreshTokens(userId, refreshToken);
-  }
-
-  @UseGuards(AccessTokenGuard)
   @Get('logout')
   async logout(@Req() req: any) {
     const userId = req.user.sub

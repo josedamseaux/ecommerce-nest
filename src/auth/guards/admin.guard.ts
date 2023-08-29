@@ -15,24 +15,24 @@ export class AdminGuard extends AuthGuard('jwt') implements CanActivate {
 
     const req = context.switchToHttp().getRequest<Request>();
     const token = req.get('Authorization')?.replace('Bearer', '').trim();
-    
     if (!token) {
       throw new UnauthorizedException('Token not found');
     }
+    console.log(token)
 
     try {
       const decodedToken = jwt.verify(token, process.env.JWT_REFRESH) as { sub: string };
       const userId = decodedToken.sub;
       const user = await this.usersServices.findUserById(userId);
-      console.log(user)
-      if (user?.email === process.env.SUPERUSER_EMAIL) {
-        console.log('Usuario autenticado:', user);
+      console.log(decodedToken)
+      if (user.email == process.env.SUPERUSER_EMAIL) {
+        console.log('entro')
         return true;
       } else {
         throw new UnauthorizedException('Unauthorized access');
       }
     } catch (err) {   
-      console.error(err);
+      console.error(err.message);
       throw new UnauthorizedException('Unauthorized access');
     }
   }

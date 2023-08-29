@@ -50,9 +50,9 @@ export class UsersService {
       const userIds = user.map(user => user.id);
       console.log(userIds)
       const purchases = await this.purchasesRepository.createQueryBuilder('purchase')
-      .innerJoinAndSelect('purchase.user', 'user')
-      .where('user.id IN (:...userIds)', { userIds })
-      .getMany();
+        .innerJoinAndSelect('purchase.user', 'user')
+        .where('user.id IN (:...userIds)', { userIds })
+        .getMany();
 
       // const { password, refreshToken, ...userWithPurchases } = user;
       user.forEach(user => {
@@ -114,5 +114,8 @@ export class UsersService {
   removeUser(id: number): Promise<DeleteResult> {
     return this.userRepository.delete(id);
   }
+
+
+
 
 }

@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToOne } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne } from "typeorm";
 import { BaseEntity } from "../../config/base.entity";
 import { UsersEntity } from "../../users/entities/users.entity";
 import { ProductsEntity } from "../../products/entities/products.entity"; // Cambiar por la entidad de productos si es diferente
@@ -12,7 +12,6 @@ export class ShoppingCartEntity extends BaseEntity {
 
     @Column({ type: 'jsonb', nullable: true })
     items: ShoppingCartItem[]; // Array of shopping cart items
-
 }
 
 interface ShoppingCartItem {

@@ -9,26 +9,29 @@ import * as jwt from 'jsonwebtoken';
 @Injectable()
 export class ShoppingcartService {
 
-
     constructor(
         @InjectRepository(ShoppingCartEntity) private readonly shoppingCartRepository: Repository<ShoppingCartEntity>,
         @Inject(REQUEST) private request,
         private readonly usersServices: UsersService) { }
 
-    async addToShoppingCart(product: any) {
+    getTokenAndUser() {
         const token = this.request.get('Authorization')?.replace('Bearer', '').trim();
         if (!token) {
             throw new UnauthorizedException('Access denied. Must be logging in to make a purchase');
         }
         const decodedToken = jwt.verify(token, process.env.JWT_REFRESH) as { sub: string };
-        const userId: any = decodedToken.sub;
-        product.user = userId
+        const userId = decodedToken.sub;
+        return userId;
+    }
+
+    async addToShoppingCart(product: any) {
+        let userId = this.getTokenAndUser()
+
         const userShoppingCart = await this.shoppingCartRepository.createQueryBuilder('shoppingCart')
             .where("shoppingCart.user = :userId", { userId })
             .getRawOne();
 
         if (userShoppingCart) {
-            console.log('aca' + userShoppingCart.shoppingCart_items);
             let newItems: any[] = userShoppingCart.shoppingCart_items; // Inicializar con los elementos existentes
             newItems.push(product.items); // Agregar el nuevo producto a la matriz
             newItems = [].concat(...newItems);
@@ -37,8 +40,11 @@ export class ShoppingcartService {
             });
             return result
         }
-
         if (!userShoppingCart) {
+            let items = []
+            items.push(product.items)
+            product.user = userId
+            product.items = items
             const result = this.shoppingCartRepository.save(product)
             return result
         }
@@ -47,23 +53,32 @@ export class ShoppingcartService {
 
     removeCart(id: any): Promise<DeleteResult> {
         const result = this.shoppingCartRepository.delete(id);
-        result.then(data => {console.log(data)})
+        result.then(data => { console.log(data) })
         return result
     }
 
-    async getItemsFromShoppingCart() {
-        const token = this.request.get('Authorization')?.replace('Bearer', '').trim();
-        if (!token) {
-            throw new UnauthorizedException('Access denied. Must be logging in to make a purchase');
-        }
-        const decodedToken = jwt.verify(token, process.env.JWT_REFRESH) as { sub: string };
-        const userId: any = decodedToken.sub;
+    async getShoppingCart() {
+        let userId = this.getTokenAndUser()
         const userShoppingCart = await this.shoppingCartRepository.createQueryBuilder('shoppingCart')
             .where("shoppingCart.user = :userId", { userId })
             .getRawOne();
-        return userShoppingCart.shoppingCart_items;
+        return userShoppingCart;
     }
 
+    async removeItemFromShoppingCart(id: string) {
+        console.log(id)
+        const shoppingCart = await this.getShoppingCart()
+        const indexToRemove = shoppingCart.shoppingCart_items.indexOf(id);
+        console.log(indexToRemove)
+        if (indexToRemove !== -1) {
+            shoppingCart.shoppingCart_items.splice(indexToRemove, 1);
+        }
+        const result: UpdateResult = await this.shoppingCartRepository.update(shoppingCart.shoppingCart_id, {
+            items: shoppingCart.shoppingCart_items
+        });
+        console.log(shoppingCart)
+        return result
+    }
 
 
 }
