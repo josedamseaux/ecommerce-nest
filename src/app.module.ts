@@ -10,9 +10,11 @@ import { AuthModule } from './auth/module/auth.module';
 import { AuthService } from './auth/service/auth.service';
 import { PurchasesModule } from './purchases/module/purchases.module';
 import { PurchasesService } from './purchases/service/purchases.service';
-import { ShoppingcartService } from './purchases/service/shoppingCart.service';
+import { ShoppingcartService } from './shoppingCart/services/shoppingCart.service';
 import { PaymentsService } from './payments/service/payments.service';
 import { PaymentsController } from './payments/controller/payments.controller';
+import { ShoppingcartModule } from './shoppingCart/module/shoppingcart.module';
+import { TemporalshoppingcartService } from './shoppingCart/services/temporalshoppingcart.service';
 
 @Module({
   imports: [ConfigModule.forRoot({
@@ -20,8 +22,8 @@ import { PaymentsController } from './payments/controller/payments.controller';
     isGlobal: true,
   }),
   TypeOrmModule.forRoot(DataSourceConfig),
-  AuthModule, UsersModule, ProductsModule, PurchasesModule],
-  providers: [UsersService, ProductsService, AuthService, PurchasesService, ShoppingcartService, PaymentsService],
+  AuthModule, UsersModule, ProductsModule, PurchasesModule, ShoppingcartModule],
+  providers: [UsersService, ProductsService, AuthService, PurchasesService, ShoppingcartService, TemporalshoppingcartService, PaymentsService],
   controllers: [PaymentsController],
 })
 export class AppModule {

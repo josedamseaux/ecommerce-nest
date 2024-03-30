@@ -2,16 +2,14 @@ import { Global, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PurchasesService } from '../service/purchases.service';
 import { PurchasesController } from '../controller/purchases.controller';
-import { PurchaseEntity } from '../entities/purchase.entity';
-import { UsersPurchasesEntity } from 'src/users/entities/usersPurchases.entity';
-import { ShoppingCartEntity } from '../entities/shoppingCart.entity';
-import { ShoppingcartService } from '../service/shoppingCart.service';
+import { UsersPurchasesEntity } from 'src/purchases/entities/usersPurchases.entity';
+
 
     
 @Global()
 @Module({
-    imports: [TypeOrmModule.forFeature([PurchaseEntity, UsersPurchasesEntity, ShoppingCartEntity])],
-    providers: [PurchasesService, ShoppingcartService],  
+    imports: [TypeOrmModule.forFeature([ UsersPurchasesEntity])],
+    providers: [PurchasesService],  
     controllers: [PurchasesController],
     exports: [PurchasesService, TypeOrmModule]
 })

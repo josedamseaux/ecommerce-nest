@@ -2,7 +2,6 @@ import { Body, Controller, Delete, Get, Param, Post, Put, Query, UseGuards } fro
 import { UserDTO } from '../DTO/user.dto';
 import { UsersService } from '../service/users.service';
 import { AdminGuard } from 'src/auth/guards/admin.guard';
-import { AccessTokenGuard } from 'src/auth/guards/accessToken.guard';
 import { RefreshAuthGuard } from 'src/auth/guards/refreshToken.guard';
 
 @Controller('users')
@@ -20,6 +19,12 @@ export class UsersController {
     @Get(':username')
     public async getUserByUsername(@Param('username') param: string) {
       return await this.usersServices.findByUsername(param)
+    }
+
+    @UseGuards(RefreshAuthGuard)
+    @Get('/get-by-email/:email')
+    public async getUserByEmail(@Param('email') param: string) {
+      return await this.usersServices.findBy({ key: 'email', value: param })
     }
 
     // @Put(':id')

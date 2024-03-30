@@ -15,36 +15,36 @@ export class AuthService {
   }
 
   async login(username: string, password: string) {
+    console.log(username)
 
-    const userByUsername = await this.userService.findBy({ key: 'username', value: username })
+    // const userByUsername = await this.userService.findBy({ key: 'username', value: username })
     const userByEmail = await this.userService.findBy({ key: 'email', value: username })
-
     // LOGIN by username
-    if (userByUsername) {
-      const match = await bcrypt.compare(password, userByUsername.password)
-      if (match) {
-        const tokens = await this.getTokens(userByUsername.id, userByUsername.username);
-        await this.updateRefreshToken(userByUsername.id, tokens.refreshToken);
-        const { accessToken, refreshToken } = tokens;
-        const { username, email, firstName, lastName } = userByUsername;
-        return { accessToken, refreshToken, username, email, firstName, lastName };
-      }
-      if (!match) {
-        throw new NotFoundException("Usuario o contraseña invalido", {
-          cause: new Error(),
-          description: 'invalid_login'
-        })
-      }
-    }
+    // if (userByUsername) {
+    //   const match = await bcrypt.compare(password, userByUsername.password)
+    //   if (match) {
+    //     const tokens = await this.getTokens(userByUsername.id, userByUsername.username);
+    //     await this.updateRefreshToken(userByUsername.id, tokens.refreshToken);
+    //     const { accessToken, refreshToken } = tokens;
+    //     const { username, email, firstName, lastName } = userByUsername;
+    //     return { accessToken, refreshToken, username, email, firstName, lastName };
+    //   }
+    //   if (!match) {
+    //     throw new NotFoundException("Usuario o contraseña invalido", {
+    //       cause: new Error(),
+    //       description: 'invalid_login'
+    //     })
+    //   }
+    // }
 
     // LOGIN by email
       if (userByEmail) {
       const match = await bcrypt.compare(password, userByEmail.password)
       if (match) {
-        const tokens = await this.getTokens(userByEmail.id, userByEmail.username);
+        const tokens = await this.getTokens(userByEmail.id, userByEmail.email);
         await this.updateRefreshToken(userByEmail.id, tokens.refreshToken);
         const { accessToken, refreshToken } = tokens;
-        const { username, email } = userByEmail;
+        const { email } = userByEmail;
         return { accessToken, refreshToken, username, email};
       }
       if (!match) {
@@ -55,9 +55,9 @@ export class AuthService {
       }
     }
 
-    if (!userByUsername || !userByEmail) {
-      throw new NotFoundException()
-    }
+    // if (!userByUsername || !userByEmail) {
+    //   throw new NotFoundException()
+    // }
     return null
   }
 

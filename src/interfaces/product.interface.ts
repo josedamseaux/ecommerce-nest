@@ -1,6 +1,6 @@
 export interface IProduct {
     productName: string;
     description: string;
-    totalAmount: number;
+    price: number;
     quantity: number;
 }

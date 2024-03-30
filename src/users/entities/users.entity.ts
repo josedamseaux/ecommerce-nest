@@ -2,8 +2,8 @@ import { Column, Entity, OneToMany, OneToOne } from "typeorm";
 import { BaseEntity } from "../../config/base.entity";
 import { IUser } from "../../interfaces/user.interface";
 import { Exclude } from "class-transformer";
-import { UsersPurchasesEntity } from "./usersPurchases.entity";
-import { ShoppingCartEntity } from "../../purchases/entities/shoppingCart.entity";
+import { UsersPurchasesEntity } from "../../purchases/entities/usersPurchases.entity";
+import { ShoppingCartEntity } from "../../shoppingCart/entities/shoppingCart.entity";
 
 @Entity({ name: 'users' })
 export class UsersEntity extends BaseEntity implements IUser {
@@ -14,14 +14,17 @@ export class UsersEntity extends BaseEntity implements IUser {
     @Column()
     lastName: string;
 
-    @Column()
-    age: number;
+    @Column({ nullable: true })
+    dateOfBirth?: Date;
 
     @Column({ unique: true })
     email: string;
 
-    @Column({ unique: true })
-    username: string;
+    // @Column({ unique: true })
+    // username: string;
+
+    @Column({ nullable: true })
+    gender?: Gender;
 
     @Exclude()
     @Column()
@@ -39,3 +42,10 @@ export class UsersEntity extends BaseEntity implements IUser {
     @OneToOne(() => ShoppingCartEntity, shoppingCart => shoppingCart.user)
     shoppingCart: ShoppingCartEntity;
 }
+
+
+enum Gender {
+    Male = 'Male',
+    Female = 'Female',
+    Other = 'Other'
+  }

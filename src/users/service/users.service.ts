@@ -4,7 +4,8 @@ import { UsersEntity } from '../entities/users.entity';
 import { DeleteResult, Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { UserDTO } from '../DTO/user.dto';
-import { PurchaseEntity } from 'src/purchases/entities/purchase.entity';
+import { ShoppingCartEntity } from 'src/shoppingCart/entities/shoppingCart.entity';
+// import { PurchaseEntity } from 'src/purchases/entities/purchase.entity';
 
 @Injectable()
 export class UsersService {
@@ -12,8 +13,8 @@ export class UsersService {
   constructor(
     @InjectRepository(UsersEntity)
     private readonly userRepository: Repository<UsersEntity>,
-    @InjectRepository(PurchaseEntity)
-    private readonly purchasesRepository: Repository<PurchaseEntity>) { }
+    @InjectRepository(ShoppingCartEntity) private readonly shoppingCartRepository: Repository<ShoppingCartEntity>,
+    ) { }
 
   public async getUsers(page: number, limit: number): Promise<any> {
     const totalCount = await this.userRepository.count();
@@ -43,21 +44,12 @@ export class UsersService {
 
   async findByUsername(param: string): Promise<any> {
     const user: any[] = await this.userRepository.find({
-      where: [{ username: param }, { email: param }, { firstName: param }, { lastName: param }]
+      where: [{ email: param }, { firstName: param }, { lastName: param }]
     })
 
     if (user) {
       const userIds = user.map(user => user.id);
       console.log(userIds)
-      const purchases = await this.purchasesRepository.createQueryBuilder('purchase')
-        .innerJoinAndSelect('purchase.user', 'user')
-        .where('user.id IN (:...userIds)', { userIds })
-        .getMany();
-
-      // const { password, refreshToken, ...userWithPurchases } = user;
-      user.forEach(user => {
-        user.purchases = purchases.filter(purchase => purchase.user.id === user.id);
-      });
       return user;
     }
 
@@ -67,10 +59,10 @@ export class UsersService {
         description: 'user_not_found'
       })
     }
-
   }
 
   async findBy({ key, value }: { key: keyof UserDTO, value: any }) {
+    console.log(key)
     try {
       const user = this.userRepository.createQueryBuilder('user')
         .addSelect('user.password')
@@ -88,7 +80,16 @@ export class UsersService {
   async createUser(body: UserDTO): Promise<UsersEntity> {
     try {
       body.password = await bcrypt.hash(body.password, +process.env.HASH_SALT)
-      return await this.userRepository.save(body)
+      let user = this.userRepository.save(body)
+      // Se crea un carrito de compras vacio para el user recien creado
+      let bodyToInsertFirstShoppingCart: any = {
+        user: '',
+        items: []
+      };
+      bodyToInsertFirstShoppingCart.user = (await user).id
+      bodyToInsertFirstShoppingCart.items = []
+      this.shoppingCartRepository.save(bodyToInsertFirstShoppingCart)
+      return user
     } catch (error) {
       console.log(error)
       if (error.code = '23505') {

@@ -20,22 +20,23 @@ export class PaymentsController {
 
     @UseGuards(RefreshAuthGuard)
     @Post('pay-with-stripe')
-    async createCheckoutSession(@Req() req: Request, @Res() res: Response, @Body() data: any) {
+    async createCheckoutSession(@Res() res: Response, @Body() data: any) {
 
-        // console.log(data.cartWithUserInfo)
+        // console.log(data.cartWithUserInfo.user)
 
         const lineItems = data.cartWithUserInfo.cart.map((item) => ({
             price_data: {
                 currency: 'eur',
                 product_data: {
-                    name: item.productName,
-                    description: item.description,
-                    images: [item.imageData], // Agrega la URL de la imagen como elemento en un array
+                    name: item. product_product_name,
+                    description: item.product_description,
+                    // images: [item.imageData], // Agrega la URL de la imagen como elemento en un array
                 },
-                unit_amount: item.totalAmount * 100,
+                unit_amount: item.product_price * 100,
             },
             quantity: 1,
         }));
+        // console.log(lineItems)
 
         try {
             const session = await stripeInstance.checkout.sessions.create({
@@ -47,9 +48,24 @@ export class PaymentsController {
                 cancel_url: "http://localhost:4200/cart",
             });
 
+            let UserInfo = {
+                firstName: '',
+                lastName: '',
+                email: ''
+            }
+
+            data.cartWithUserInfo.user.forEach(element => {
+                console.log(element)
+                UserInfo.firstName = element.firstName
+                UserInfo.lastName = element.lastName
+                UserInfo.email = element.email
+            });
+
+            console.log(UserInfo)
+
             const customer = await stripeInstance.customers.create({
-                name: `${data.cartWithUserInfo.firstName} ${data.cartWithUserInfo.lastName}`,
-                email: data.cartWithUserInfo.email,
+                name: `${UserInfo.firstName} ${UserInfo.lastName}`,
+                email: UserInfo.email,
                 // description: 'My first customer',
             });
 
@@ -65,15 +81,13 @@ export class PaymentsController {
                 console.log('++++++++++')
                 // dataResp = resp.id
     
-                let dataResp;
-    
                 const responseObj = {
                     url: session.url,
-                    // customerResp: customer,
+                    customerResp: customer,
                     sessionResp: session,
                     resp: resp.id
                 };
-                console.log(responseObj)
+                // console.log(responseObj)
 
                 return res.status(HttpStatus.OK).json(responseObj);
             });
@@ -95,7 +109,6 @@ export class PaymentsController {
             const paymentStatus = session.payment_status; // Almacena el valor en una variable
             console.log(paymentStatus)
             if (paymentStatus == 'paid') {
-                console.log('***************entered if')
                  this.purchasesService.updatePurchaseStatus(purchaseId).then(resp=>{
                     console.log(resp)
                  });

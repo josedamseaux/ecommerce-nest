@@ -1,18 +1,13 @@
 import { BaseEntity } from "../../config/base.entity"
-import { Column, Entity, JoinColumn, ManyToOne, OneToOne } from "typeorm"
-import { UsersEntity } from "./users.entity";
-import { PurchaseEntity } from "../../purchases/entities/purchase.entity";
+import { Column, Entity, ManyToOne } from "typeorm"
+import { UsersEntity } from "../../users/entities/users.entity";
+// import { PurchaseEntity } from "../../purchases/entities/purchase.entity";
 
 @Entity({ name: 'users_purchases' })
 export class UsersPurchasesEntity extends BaseEntity {
     // Many purchases to one user
     @ManyToOne(() => UsersEntity, user => user.purchases)
     user: UsersEntity;
-
-    // Agregar esta anotación en la propiedad user, no en purchase
-    @JoinColumn({ name: 'purchase_id' })
-    @OneToOne(() => PurchaseEntity, purchase => purchase.usersPurchases)
-    purchase: PurchaseEntity;
 
     @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
     total: number;
@@ -28,5 +23,11 @@ export class UsersPurchasesEntity extends BaseEntity {
 
     @Column({ nullable: true })
     sessionId: string;
+
+    @Column({ type: 'jsonb', nullable: true })
+    products: string[]; // Array of product IDs
+
+    @Column({ nullable: true })
+    shippingStatus: string;
 
 }

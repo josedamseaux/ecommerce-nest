@@ -1,4 +1,4 @@
-import { PurchaseEntity } from "src/purchases/entities/purchase.entity";
+// import { PurchaseEntity } from "src/purchases/entities/purchase.entity";
 import { UsersEntity } from "src/users/entities/users.entity";
 
 export interface IPurchaseBody {

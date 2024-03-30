@@ -1,8 +1,8 @@
 export interface IUser {
     firstName: string;
     lastName: string;
-    age: number;
+    age?: number; // Hacer age opcional
     email: string;
-    username: string;
+    // username: string;
     password: string;
 }

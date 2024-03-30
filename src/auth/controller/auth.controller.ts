@@ -13,6 +13,8 @@ export class AuthController {
   login(@Body() req: AuthBody) {
     const username = req.username
     const password = req.password
+
+    console.log(req)
     const result = this.authService.login(username, password);
     return result
   }
